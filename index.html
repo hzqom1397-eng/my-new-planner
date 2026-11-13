@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#244d43">
+<title>پلنر شخصی من</title>
+<style>
+:root {
+ --green:#244d43;
+ --bg:#f1f5f2;
+ --card:#ffffff;
+ --text:#25352e;
+ --line:#e1e9e3;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:var(--bg);
+ color:var(--text);
+ font-family:Tahoma,sans-serif;
+ padding:16px;
+ transition:.2s;
+}
+header{
+ background:var(--green);
+ color:white;
+ padding:22px;
+ border-radius:20px;
+ margin-bottom:16px;
+}
+h1{font-size:23px;margin:0 0 12px}
+#today{font-size:17px}
+.card{
+ background:var(--card);
+ border-radius:16px;
+ padding:17px;
+ margin-bottom:14px;
+ box-shadow:0 3px 12px #00000008;
+}
+h3{margin:0 0 14px;font-size:17px}
+input,select,button{
+ font:inherit;
+ border-radius:10px;
+ padding:11px;
+ border:1px solid var(--line);
+}
+input,select{background:var(--card);color:var(--text)}
+button{
+ background:var(--green);
+ color:white;
+ border:0;
+ cursor:pointer;
+}
+.addrow{display:flex;gap:7px}
+.addrow input{flex:1;min-width:0}
+.task{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ padding:12px 2px;
+ border-bottom:1px solid var(--line);
+}
+.task:last-child{border:0}
+.task input{width:19px;height:19px}
+.task span{flex:1;overflow-wrap:anywhere}
+.done{text-decoration:line-through;opacity:.5}
+.delete{background:#fcebea;color:#a33;padding:7px 10px}
+.stats{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+}
+.stat{
+ background:var(--bg);
+ padding:14px;
+ border-radius:12px;
+ text-align:center;
+}
+.number{font-size:25px;font-weight:bold;margin:7px}
+.progress{
+ height:13px;
+ background:var(--line);
+ border-radius:20px;
+ overflow:hidden;
+ margin:12px 0;
+}
+.bar{
+ height:100%;
+ width:0;
+ background:#429875;
+ border-radius:20px;
+ transition:.3s;
+}
+.chart{
+ display:flex;
+ align-items:end;
+ justify-content:space-around;
+ height:125px;
+ gap:5px;
+ padding-top:10px;
+}
+.daybar{
+ flex:1;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:end;
+ height:100%;
+ gap:5px;
+ font-size:10px;
+}
+.daybar div{
+ width:75%;
+ min-height:3px;
+ background:#429875;
+ border-radius:5px 5px 0 0;
+}
+.settings{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+}
+.settings label{font-size:12px}
+.settings select,.settings input{width:100%;margin-top:7px}
+footer{text-align:center;color:#888;font-size:11px;padding:15px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>پلنر شخصی من</h1>
+<div id="today">امروز</div>
+<p>هر روز یک قدم به جلو</p>
+</header>
+
+<section class="card">
+<h3>کارهای امروز</h3>
+<div class="addrow">
+<input id="newTask" placeholder="کار جدید را بنویس...">
+<button onclick="addTask()">افزودن +</button>
+</div>
+<div id="tasks"></div>
+</section>
+
+<section class="card">
+<h3>پیشرفت امروز</h3>
+<div class="stats">
+<div class="stat">
+<div>کارهای امروز</div>
+<div class="number" id="total">۰</div>
+</div>
+<div class="stat">
+<div>انجام شده</div>
+<div class="number" id="completed">۰</div>
+</div>
+</div>
+<div class="progress"><div class="bar" id="todayBar"></div></div>
+<div id="todayPercent">۰٪ پیشرفت</div>
+</section>
+
+<section class="card">
+<h3>گزارش پیشرفت ماه</h3>
+<div class="stats">
+<div class="stat">
+<div>کل کارهای ماه</div>
+<div class="number" id="monthTotal">۰</div>
+</div>
+<div class="stat">
+<div>کارهای تکمیل شده</div>
+<div class="number" id="monthDone">۰</div>
+</div>
+</div>
+<div class="progress"><div class="bar" id="monthBar"></div></div>
+<div id="monthPercent">۰٪ پیشرفت ماه</div>
+</section>
+
+<section class="card">
+<h3>نمودار عملکرد ماهانه</h3>
+<div class="chart" id="chart"></div>
+<p style="font-size:11px;color:#888">
+میزان انجام کارها در روزهای ماه
+</p>
+</section>
+
+<section class="card">
+<h3>تنظیمات ظاهری</h3>
+<div class="settings">
+<label>انتخاب فونت
+<select id="font" onchange="changeFont()">
+<option value="Tahoma">تاهوما</option>
+<option value="Arial">Arial</option>
+<option value="sans-serif">فونت پیش‌فرض</option>
+<option value="serif">سریف</option>
+</select>
+</label>
+<label>اندازه نوشته
+<select id="fontSize" onchange="changeFont()">
+<option value="14px">کوچک</option>
+<option value="16px" selected>متوسط</option>
+<option value="18px">بزرگ</option>
+<option value="20px">خیلی بزرگ</option>
+</select>
+</label>
+<label>رنگ پس‌زمینه
+<input type="color" id="background" value="#f1f5f2"
+oninput="changeTheme()">
+</label>
+<label>رنگ اصلی
+<input type="color" id="mainColor" value="#244d43"
+oninput="changeTheme()">
+</label>
+</div>
+</section>
+
+<footer>پلنر شخصی من | اطلاعات در گوشی شما ذخیره می‌شود</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+let data = {};
+let settings = {};
+
+try {
+ data = JSON.parse(localStorage.getItem('myPlannerData') || '{}');
+ settings = JSON.parse(localStorage.getItem('myPlannerSettings') || '{}');
+} catch(e) {
+ data = {};
+ settings = {};
+}
+
+function todayKey(){
+ const d = new Date();
+ return d.getFullYear()+'-'+
+ String(d.getMonth()+1).padStart(2,'0')+'-'+
+ String(d.getDate()).padStart(2,'0');
+}
+
+function persianDate(){
+ return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{
+ weekday:'long',year:'numeric',month:'long',day:'numeric'
+ }).format(new Date());
+}
+
+function save(){
+ localStorage.setItem('myPlannerData',JSON.stringify(data));
+}
+
+function getTasks(key){
+ if(!data[key]) data[key]=[];
+ return data[key];
+}
+
+function addTask(){
+ const input=$('newTask');
+ const name=input.value.trim();
+ if(!name)return;
+ getTasks(todayKey()).push({
+ id:Date.now()+Math.random(),
+ name:name,
+ done:false
+ });
+ input.value='';
+ save();
+ render();
+}
+
+$('newTask').addEventListener('keydown',e=>{
+ if(e.key==='Enter')addTask();
+});
+
+function toggleTask(id){
+ const tasks=getTasks(todayKey());
+ const task=tasks.find(t=>String(t.id)===String(id));
+ if(task)task.done=!task.done;
+ save();
+ render();
+}
+
+function deleteTask(id){
+ data[todayKey()]=getTasks(todayKey()).filter(
+ t=>String(t.id)!==String(id)
+ );
+ save();
+ render();
+}
+
+function render(){
+ $('today').textContent=persianDate();
+
+ const tasks=getTasks(todayKey());
+ $('tasks').innerHTML='';
+
+ if(!tasks.length){
+ $('tasks').textContent='هنوز کاری ثبت نکرده‌ای.';
+ }
+
+ tasks.forEach(t=>{
+ const row=document.createElement('div');
+ row.className='task';
+
+ const check=document.createElement('input');
+ check.type='checkbox';
+ check.checked=t.done;
+ check.onchange=()=>toggleTask(t.id);
+
+ const span=document.createElement('span');
+ span.textContent=t.name;
+ if(t.done)span.className='done';
+
+ const del=document.createElement('button');
+ del.textContent='حذف';
+ del.className='delete';
+ del.onclick=()=>deleteTask(t.id);
+
+ row.append(check,span,del);
+ $('tasks').appendChild(row);
+ });
+
+ const done=tasks.filter(t=>t.done).length;
+ const percent=tasks.length?Math.round(done/tasks.length*100):0;
+
+ $('total').textContent=tasks.length;
+ $('completed').textContent=done;
+ $('todayBar').style.width=percent+'%';
+ $('todayPercent').textContent=percent+'٪ پیشرفت امروز';
+
+ renderMonth();
+}
+
+function renderMonth(){
+ const now=new Date();
+ const year=now.getFullYear();
+ const month=now.getMonth();
+ const days=new Date(year,month+1,0).getDate();
+
+ let total=0,done=0;
+ let chart='';
+
+ for(let i=1;i<=days;i++){
+ const key=year+'-'+String(month+1).padStart(2,'0')+'-'+
+ String(i).padStart(2,'0');
+ const tasks=data[key]||[];
+ const completed=tasks.filter(t=>t.done).length;
+ total+=tasks.length;
+ done+=completed;
+
+ const percent=tasks.length?
+ Math.round(completed/tasks.length*100):0;
+
+ chart+=`<div class="daybar">
+ <div style="height:${Math.max(percent,2)}%"></div>
+ <span>${i}</span>
+ </div>`;
+ }
+
+ const p=total?Math.round(done/total*100):0;
+ $('monthTotal').textContent=total;
+ $('monthDone').textContent=done;
+ $('monthBar').style.width=p+'%';
+ $('monthPercent').textContent=p+'٪ پیشرفت ماه';
+ $('chart').innerHTML=chart;
+}
+
+function changeFont(){
+ settings.font=$('font').value;
+ settings.size=$('fontSize').value;
+ document.body.style.fontFamily=settings.font;
+ document.body.style.fontSize=settings.size;
+ saveSettings();
+}
+
+function changeTheme(){
+ settings.bg=$('background').value;
+ settings.main=$('mainColor').value;
+ document.documentElement.style.setProperty('--bg',settings.bg);
+ document.documentElement.style.setProperty('--green',settings.main);
+ saveSettings();
+}
+
+function saveSettings(){
+ localStorage.setItem('myPlannerSettings',JSON.stringify(settings));
+}
+
+function loadSettings(){
+ if(settings.font){
+ $('font').value=settings.font;
+ $('fontSize').value=settings.size||'16px';
+ changeFont();
+ }
+ if(settings.bg){
+ $('background').value=settings.bg;
+ $('mainColor').value=settings.main||'#244d43';
+ changeTheme();
+ }
+}
+
+loadSettings();
+render();
+</script>
+</body>
+</html>
