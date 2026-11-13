@@ -396,8 +396,22 @@ function loadSettings(){
  }
 }
 
+
 loadSettings();
 render();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(registration) {
+        console.log('Planner ready:', registration.scope);
+      })
+      .catch(function(error) {
+        console.error('Installation error:', error);
+      });
+  });
+}
 </script>
 </body>
 </html>
+
